@@ -79,16 +79,14 @@ func CreateURL(w http.ResponseWriter, r *http.Request) {
 	res := Response{}
 	if existingURL.OriginalURL != "" {
 		// format a response object
-		res.OriginalURL = existingURL.OriginalURL
-		res.ShortURL = existingURL.ShortURL
+		res = Response{existingURL.OriginalURL, existingURL.ShortURL}
 
 	} else {
 		// call insert user function and pass the user
 		shortURL := insertURL(url)
 
 		// format a response object
-		res.OriginalURL = url.OriginalURL
-		res.ShortURL = shortURL
+		res = Response{url.OriginalURL, shortURL}
 
 		// send the response
 	}
