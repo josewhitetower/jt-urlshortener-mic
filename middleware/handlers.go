@@ -25,11 +25,11 @@ type Response struct {
 
 // create connection with postgres db
 func createConnection() *sql.DB {
-	// load .env file
+	// load .env file only for local env
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		fmt.Print("Error loading .env file")
 	}
 
 	// Open the connection
