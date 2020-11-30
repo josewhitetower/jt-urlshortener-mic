@@ -70,17 +70,30 @@ func CreateURL(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	// call insert user function and pass the user
-	shortURL := insertURL(url)
+	// find existing url
+	existingURL, err := getURLByOriginalURL(url.OriginalURL)
 
-	// format a response object
-	res := Response{
-		OriginalURL: url.OriginalURL,
-		ShortURL:    shortURL,
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	res := Response{}
+	if existingURL.OriginalURL != "" {
+		// format a response object
+		res.OriginalURL = existingURL.OriginalURL
+		res.ShortURL = existingURL.ShortURL
 
-	// send the response
+	} else {
+		// call insert user function and pass the user
+		shortURL := insertURL(url)
+
+		// format a response object
+		res.OriginalURL = url.OriginalURL
+		res.ShortURL = shortURL
+
+		// send the response
+	}
 	json.NewEncoder(w).Encode(res)
+
 }
 
 // GetAllURLs will return all the urls
@@ -108,7 +121,7 @@ func RedirectURL(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		fmt.Printf("%d of type %T", n, n)
 	}
-	url, err := getOriginalURL(n)
+	url, err := getURLByShortURL(n)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -193,7 +206,7 @@ func getAllURLs() ([]models.URL, error) {
 	return urls, err
 }
 
-func getOriginalURL(shortURL int64) (models.URL, error) {
+func getURLByShortURL(shortURL int64) (models.URL, error) {
 	// create the postgres db connection
 	db := createConnection()
 
@@ -214,6 +227,35 @@ func getOriginalURL(shortURL int64) (models.URL, error) {
 	switch err {
 	case sql.ErrNoRows:
 		return url, errors.New("no rows were returned")
+	case nil:
+		return url, nil
+	default:
+		log.Fatalf("Unable to scan the row. %v", err)
+	}
+	// return empty user on error
+	return url, err
+}
+
+func getURLByOriginalURL(originalURL string) (models.URL, error) {
+	// create the postgres db connection
+	db := createConnection()
+
+	// close the db connection
+	defer db.Close()
+
+	// create a url of models.URL type
+	var url models.URL
+
+	// create the insert sql query
+	sqlStatement := `SELECT * FROM urls WHERE original_url=$1`
+	// execute the sql statement
+	row := db.QueryRow(sqlStatement, originalURL)
+
+	// unmarshal the row object to user
+	err := row.Scan(&url.OriginalURL, &url.ShortURL)
+	switch err {
+	case sql.ErrNoRows:
+		return url, nil
 	case nil:
 		return url, nil
 	default:
