@@ -51,7 +51,7 @@ func createConnection() *sql.DB {
 	return db
 }
 
-// CreateURL create a user in the postgres db
+// CreateURL create a url in the postgres db
 func CreateURL(w http.ResponseWriter, r *http.Request) {
 	// set the header to content type x-www-form-urlencoded
 	// Allow all origin to handle cors issue
@@ -60,10 +60,10 @@ func CreateURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	// create an empty user of type models.User
+	// create an empty url of type models.URL
 	var url models.URL
 
-	// decode the json request to user
+	// decode the json request to url
 	err := json.NewDecoder(r.Body).Decode(&url)
 
 	if err != nil {
@@ -82,14 +82,14 @@ func CreateURL(w http.ResponseWriter, r *http.Request) {
 		res = Response{existingURL.OriginalURL, existingURL.ShortURL}
 
 	} else {
-		// call insert user function and pass the user
+		// call insert url function and pass the url
 		shortURL := insertURL(url)
 
 		// format a response object
 		res = Response{url.OriginalURL, shortURL}
 
-		// send the response
 	}
+	// send the response
 	json.NewEncoder(w).Encode(res)
 
 }
@@ -109,7 +109,7 @@ func GetAllURLs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(urls)
 }
 
-// RedirectURL returns the orginal url to be redirected to
+// RedirectURL returns the original url to be redirected to
 func RedirectURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -188,19 +188,19 @@ func getAllURLs() ([]models.URL, error) {
 	for rows.Next() {
 		var url models.URL
 
-		// unmarshal the row object to user
+		// unmarshal the row object to url
 		err := rows.Scan(&url.OriginalURL, &url.ShortURL)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
 		}
 
-		// append the user in the users slice
+		// append the url in the urls slice
 		urls = append(urls, url)
 
 	}
 
-	// return empty user on error
+	// return empty url on error
 	return urls, err
 }
 
@@ -220,7 +220,7 @@ func getURLByShortURL(shortURL int64) (models.URL, error) {
 	// execute the sql statement
 	row := db.QueryRow(sqlStatement, shortURL)
 
-	// unmarshal the row object to user
+	// unmarshal the row object to url
 	err := row.Scan(&url.OriginalURL, &url.ShortURL)
 	switch err {
 	case sql.ErrNoRows:
@@ -230,7 +230,7 @@ func getURLByShortURL(shortURL int64) (models.URL, error) {
 	default:
 		log.Fatalf("Unable to scan the row. %v", err)
 	}
-	// return empty user on error
+	// return empty url on error
 	return url, err
 }
 
@@ -249,7 +249,7 @@ func getURLByOriginalURL(originalURL string) (models.URL, error) {
 	// execute the sql statement
 	row := db.QueryRow(sqlStatement, originalURL)
 
-	// unmarshal the row object to user
+	// unmarshal the row object to url
 	err := row.Scan(&url.OriginalURL, &url.ShortURL)
 	switch err {
 	case sql.ErrNoRows:
@@ -259,6 +259,6 @@ func getURLByOriginalURL(originalURL string) (models.URL, error) {
 	default:
 		log.Fatalf("Unable to scan the row. %v", err)
 	}
-	// return empty user on error
+	// return empty url on error
 	return url, err
 }
