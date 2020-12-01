@@ -17,7 +17,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// response format
+// Response format
 type Response struct {
 	OriginalURL string `json:"original_url"`
 	ShortURL    int64  `json:"short_url"`
@@ -133,32 +133,34 @@ func RedirectURL(w http.ResponseWriter, r *http.Request) {
 //------------------------- handler functions ----------------
 // insert one url in the DB
 func insertURL(url models.URL) int64 {
+	if url.OriginalURL != "" {
+		// create the postgres db connection
+		db := createConnection()
 
-	// create the postgres db connection
-	db := createConnection()
+		// close the db connection
+		defer db.Close()
 
-	// close the db connection
-	defer db.Close()
+		// create the insert sql query
+		// returning short_url will return the short_url of the inserted url
+		sqlStatement := `INSERT INTO urls (original_url) VALUES ($1) RETURNING short_url`
 
-	// create the insert sql query
-	// returning short_url will return the short_url of the inserted url
-	sqlStatement := `INSERT INTO urls (original_url) VALUES ($1) RETURNING short_url`
+		// the inserted shortURL will store in this shortURL
+		var shortURL int64
 
-	// the inserted shortURL will store in this shortURL
-	var shortURL int64
+		// execute the sql statement
+		// Scan function will save the insert shortURL in the shortURL
+		err := db.QueryRow(sqlStatement, url.OriginalURL).Scan(&shortURL)
 
-	// execute the sql statement
-	// Scan function will save the insert shortURL in the shortURL
-	err := db.QueryRow(sqlStatement, url.OriginalURL).Scan(&shortURL)
+		if err != nil {
+			log.Fatalf("Unable to execute the query. %v", err)
+		}
 
-	if err != nil {
-		log.Fatalf("Unable to execute the query. %v", err)
+		fmt.Printf("Inserted a single record %v", shortURL)
+
+		// return the inserted id
+		return shortURL
 	}
-
-	fmt.Printf("Inserted a single record %v", shortURL)
-
-	// return the inserted id
-	return shortURL
+	return 0
 }
 
 // get all urls
