@@ -114,7 +114,7 @@ func RedirectURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	// get all the urls in the db
-	shortURL := r.URL.Path[len("/api/shorturl/url/"):]
+	shortURL := r.URL.Path[len("/api/shorturl/"):]
 	n, err := strconv.ParseInt(shortURL, 10, 64)
 	if err == nil {
 		fmt.Printf("%d of type %T", n, n)

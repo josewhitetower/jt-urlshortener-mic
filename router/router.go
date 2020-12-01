@@ -12,7 +12,7 @@ func Router() *mux.Router {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/shorturl/url/{short_url}", middleware.RedirectURL).Methods("GET")
+	router.HandleFunc("/api/shorturl/{short_url}", middleware.RedirectURL).Methods("GET")
 	router.HandleFunc("/api/shorturl/url", middleware.GetAllURLs).Methods("GET")
 	router.HandleFunc("/api/shorturl/new", middleware.CreateURL).Methods("POST")
 	// This will serve files under http://localhost:8000/static/<filename>
