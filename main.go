@@ -11,8 +11,6 @@ import (
 
 func main() {
 	r := router.Router()
-	// // This will serve files under http://localhost:8000/static/<filename>
-	// r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static"))))
 
 	port := getPort()
 
